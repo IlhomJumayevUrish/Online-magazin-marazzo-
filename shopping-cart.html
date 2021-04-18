@@ -1,0 +1,373 @@
+{% extends "wrapper.html"%}
+{% block index %}
+{% load thumbnail %}
+{% load i18n %}
+<!-- ============================================== HEADER : END ============================================== -->
+<div class="breadcrumb">
+	<div class="container">
+		<div class="breadcrumb-inner">
+			<ul class="list-inline list-unstyled">
+				<li><a href="#">Home</a></li>
+				<li class='active'>Shopping Cart</li>
+			</ul>
+		</div><!-- /.breadcrumb-inner -->
+	</div><!-- /.container -->
+</div><!-- /.breadcrumb -->
+
+<div class="body-content outer-top-xs">
+	<div class="container">
+		<div class="row ">
+			<div class="shopping-cart">
+				<div class="shopping-cart-table ">
+	<div class="table-responsive">
+		{% if products  %}
+		<table class="table">
+			<thead>
+				<tr>
+					<th class="cart-romove item"><font style="color: red;">{% trans "Remove"%}</font></th>
+					<th class="cart-description item">{% trans "Image" %}</th>
+					<th class="cart-product-name item">{% trans "Product Name" %}</th>
+					<th class="cart-qty item">{% trans "Quantity"%}</th>
+					<th class="cart-sub-total item">{% trans "Subtotal"%}</th>
+					<th class="cart-total last-item">{% trans "Grandtotal"%}</th>
+				</tr>
+			</thead>
+			<!-- /thead -->
+			<!-- Button trigger modal -->
+<!-- <button  type="button" class="btn btn-primary" >
+	
+  </button>
+   -->
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal3" tabindex="-1" role="dialog" aria-labelledby="exampleModal3Label" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+	  <div class="modal-content">
+		<div class="modal-header bg-warning">
+		  <h5 class="modal-title" id="exampleModal3Label">Savatdagi tavarni o'chirish!</h5>
+		  <button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
+		</div>
+		<div class="modal-body">
+
+			<h2>Tavarni savatdan o'chirasizmi?</h2>		</div>
+
+		<div class="modal-footer ">
+		  <button type="button" class="btn btn-secondary" id="close" data-dismiss="modal">No</button>
+		  <button type="button" class="btn btn-primary" onclick="DelProduct()">Yes</button>
+		</div>
+	  </div>
+	</div>
+  </div>
+  
+			<tbody> 
+				<input type="hidden" name="" id="demo">
+				{% for i in products %}
+				<tr id="demo_{{i.id}}">
+					<td class="romove-item"><a href="#" title="cancel" onclick="OpenModal('{{i.id}}')" 
+						class="icon" data-toggle="modal" data-target="#exampleModal3"><i class="fa fa-trash-o"></i></a></td>
+					<td class="cart-image">
+						<a class="entry-thumbnail" href="{% url 'myshop:detail' i.product.id%}">
+						
+
+							{% thumbnail i.product.image "200x200" crop="center" as im %}
+								<img src="{{ im.url }}" width="{{ 300 }}" height="{{ 200 }}">
+							{% endthumbnail %}
+						</a>
+					</td>
+					<td class="cart-product-name-info">
+						<h4 class='cart-product-description'><a href="{% url 'myshop:detail' i.product.id%}">{{i.product.title}}</a></h4>
+						<div class="row">
+							<div class="col-sm-12">
+								<div class="rating rateit-small"></div>
+							</div>
+							<div class="col-sm-12">
+								<div class="reviews">
+									(06 Reviews)
+								</div>
+							</div>
+						</div><!-- /.row -->
+						<div class="cart-product-info">
+						<span class="product-color">COLOR:<span>{{i.product.rang}}</span></span>
+						</div>
+					</td>
+					<td class="cart-product-quantity">
+						<div class="cart-quantity">
+							<div class="quant-input">
+				                <div class="arrows">
+				                  <div class="arrow plus gradient"><span class="ir"><i class="icon fa fa-sort-asc"></i></span></div>
+				                  <div class="arrow minus gradient"><span class="ir"><i class="icon fa fa-sort-desc"></i></span></div>
+				                </div>
+				                <input type="text" id="coutid_{{i.id}}" onchange="Changecart('{{i.id}}',this.value)" value="{{i.qty}}">
+			              </div>
+			            </div>
+		            </td>
+					<td class="cart-product-sub-total"><span class="cart-sub-total-price">{{i.product.price}}$</span></td>
+					<td class="cart-product-grand-total" ><span class="cart-grand-total-price" id="price_{{i.id}}">{{i.price}}$</span></td>
+				</tr>
+				{% endfor%}
+			</tbody><!-- /tbody -->
+			<script>
+
+				function Changecart(cartproduct_id,values)
+				{
+
+					if(window.XMLHttpRequest)
+						  var xhttp=new XMLHttpRequest();
+						else
+						  var xhttp=new ActiveXObject("Micrasoft.XMLHTTP");
+					if(values>0)	
+					{
+						xhttp.onreadystatechange=function(){
+						  if(xhttp.readyState === 4 && xhttp.status === 200)
+						  {
+							var data= JSON.parse(this.responseText);      
+							if(data.status==200)
+							{
+								document.getElementById('price_'+cartproduct_id).innerText=data.cart_product_price+'$';
+								document.getElementById('subtotal').innerText=data.cart_total_qty+' ta' ;
+								document.getElementById('grandtotal').innerText=data.cart_total_price+'$';
+							}
+						  }
+						}
+						var url="{% url 'myshop:Change_cart' %}";
+						var url=url+"?qty="+values+"&cartproduct_id="+cartproduct_id;
+						xhttp.open("GET",url,true);
+						xhttp.send();						
+					}
+					else
+					{
+					alert("Siz bittadan kam tavar tanlay olmaysiz bu tavarni o'chiramiz!");
+					xhttp.onreadystatechange=function(){
+                          if(xhttp.readyState === 4 && xhttp.status === 200)
+                          {
+							 
+							  var data= JSON.parse(this.responseText);                     
+
+                            if(data.status==200)
+
+							{
+								document.getElementById('demo_'+cartproduct_id).style="display:none";
+								document.getElementById('subtotal').innerText=data.cart_total_qty+' ta' ;
+								document.getElementById('grandtotal').innerText=data.cart_total_price+'$';
+							}	
+							
+                          }
+                        }
+                        var url="{% url 'myshop:cart_delete' %}";
+                        var url=url+"?data="+cartproduct_id;
+                        xhttp.open("GET",url,true);
+                        xhttp.send();
+					}
+
+						 
+
+				}
+
+				function OpenModal(cart_product_id){
+					document.getElementById('demo').value=cart_product_id;
+				}
+                function DelProduct(){
+					document.getElementById('close').click();
+
+				var	cartproduct_id=document.getElementById('demo').value;
+			
+                        if(window.XMLHttpRequest)
+                          var xhttp=new XMLHttpRequest();
+                        else
+                          var xhttp=new ActiveXObject("Micrasoft.XMLHTTP");
+
+                        xhttp.onreadystatechange=function(){
+                          if(xhttp.readyState === 4 && xhttp.status === 200)
+                          {
+							 
+							  var data= JSON.parse(this.responseText);                     
+
+                            if(data.status==200)
+
+							{
+								document.getElementById('demo_'+cartproduct_id).style="display:none";
+								document.getElementById('close').click();
+								document.getElementById('subtotal').innerText=data.cart_total_qty+' ta' ;
+								document.getElementById('grandtotal').innerText=data.cart_total_price+'$';
+
+							}	
+							else
+							alert(data.status);
+							
+                          }
+                        }
+                        var url="{% url 'myshop:cart_delete' %}";
+                        var url=url+"?data="+cartproduct_id;
+                        xhttp.open("GET",url,true);
+                        xhttp.send();
+                      }
+                </script>
+
+
+            <tfoot>
+				<tr>
+					<td colspan="7">
+						<div class="shopping-cart-btn">
+							<span class="">
+								<a href="{% url 'myshop:home'%}" class="btn btn-upper btn-primary btn-primary pull-right outer-right-xs">Continue Shopping</a>
+								<!-- <a href="#" class="btn btn-upper btn-primary pull-right outer-right-xs">Update shopping cart</a> -->
+							</span>
+						</div><!-- /.shopping-cart-btn -->
+					</td>
+				</tr>
+			</tfoot>
+		</table><!-- /table -->
+		{% else %}
+		{% if messages%}
+		{% for i in messages%}
+		<p style="color:yellowgreen; font-size: 25px; text-align: center;">{{i}}</p>
+		{% endfor%}
+		{%else%}
+		<p style="color: yellowgreen; font-size: 25px; text-align: center;">Hozir sizda tavar tanlanmadi iltimos kerakli tavarni tanlang!</p>
+		{% endif %}
+		{% endif %}
+	</div>
+</div><!-- /.shopping-cart-table -->	
+<form action="" method="POST">
+
+	<div class="col-md-4 col-sm-12 estimate-ship-tax">
+	<table class="table">
+		<thead>
+			<tr>
+				<th>
+					<span class="estimate-title">Estimate shipping and tax</span>
+					<p>Enter your destination to get shipping and tax.</p>
+				</th>
+			</tr>
+		</thead><!-- /thead -->
+
+		<tbody>
+				<tr>
+					<td>
+							{% csrf_token %}
+							<div class="form-group">
+								<label class="info-title control-label">Viloyat <span>*</span></label>
+								<select name="province_id" class="form-control unicase-form-control selectpicker" onchange="District(this.value)">
+									<option>--Viloyatni tanlang!--</option>
+									{% for i in province %}
+									<option value="{{i.id}}">{{i.title}}</option>
+									{% endfor%}
+								</select>
+							</div>
+							<div class="form-group" id="district">
+								
+								<label class="info-title control-label">Tuman <span>*</span></label>
+								<select name="district_id" class="form-control unicase-form-control selectpicker" >
+									<option>--Tumanni tanlang!--</option>
+								</select>
+								
+							</div>
+							<div class="form-group">
+								<label class="info-title control-label">Mahalla/Ko'cha/Uy-nomer <span>*</span></label>
+								<input type="text" name="mahalla" class="form-control unicase-form-control text-input" placeholder="">
+							</div>
+							
+							
+						</td>
+				</tr>
+		</tbody>
+	</table>
+</div><!-- /.estimate-ship-tax -->
+<div class="col-md-4 col-sm-12 estimate-ship-tax">
+	<table class="table">
+		<thead>
+			<tr>
+				<th>
+					<span class="estimate-title">Yuor contact</span>
+					<p>Enter your name and phone</p>
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>
+					<div class="form-group">
+						<label class="info-title control-label">Name <span>*</span></label>
+						<input type="text" name="name" class="form-control unicase-form-control text-input" placeholder="">
+					</div>
+					<div class="form-group">
+						<label class="info-title control-label">Telefon <span>*</span></label>
+						<input type="text" name="phone" class="form-control unicase-form-control text-input" placeholder="">
+					</div>
+						<div class="clearfix pull-right">
+							<button type="submit" class="btn-upper btn btn-primary">APPLY COUPON</button>
+						</div>
+				</td>
+				</tr>
+		</tbody><!-- /tbody -->
+	</table><!-- /table -->
+</div><!-- /.estimate-ship-tax -->
+</form>
+
+<script>
+	function District(province_id){
+	//   document.getElementById('district').style.display="none";//innerHTML='<option value="1">464654646546546</option><option value="2">16511613112</option>';
+				  if(window.XMLHttpRequest)
+					var xhttp=new XMLHttpRequest();
+				  else
+					var xhttp=new ActiveXObject("Micrasoft.XMLHTTP");
+
+				  xhttp.onreadystatechange=function(){
+					if(xhttp.readyState === 4 && xhttp.status === 200)
+					{
+					  var data=JSON.parse(this.responseText);
+					var div='<label class="info-title control-label">Tuman <span>*</span></label>';
+					div+='<select name="district_id" class="form-control unicase-form-control selectpicker" >';
+					div+='<option>--Tumanni tanlang!--</option>';
+					for( var i=0;i<data.length;i++)
+					{
+						
+						div+='<option value="'+data[i].id+'">'+data[i].title+'</option>';
+					}
+					div+='</select>'
+					document.getElementById('district').innerHTML=div;
+					}
+				  }
+				
+				  var url="{% url 'myshop:District_Provice' %}";
+				  var url=url+"?data="+province_id;
+				  xhttp.open("GET",url,true);
+				  xhttp.send();
+				}
+
+
+</script>
+
+
+<div class="col-md-4 col-sm-12 cart-shopping-total">
+	<table class="table">
+		<thead>
+			<tr>
+				<th>
+					<div class="cart-sub-total">
+					Umumiy soni:<span class="inner-left-md" id="subtotal">{{cart.total_quantity}} ta</span>
+					</div>
+					<div class="cart-grand-total">
+						Umumiy summa:<span class="inner-left-md" id="grandtotal">{{cart.total_price}}$</span>
+					</div>
+				</th>
+			</tr>
+		</thead><!-- /thead -->
+		<tbody>
+				<tr>
+					<td>
+						<div class="cart-checkout-btn pull-right">
+							<button type="submit" class="btn btn-primary checkout-btn">PROCCED TO CHEKOUT</button>
+							<span class="">Checkout with multiples address!</span>
+						</div>
+					</td>
+				</tr>
+		</tbody><!-- /tbody -->
+	</table><!-- /table -->
+</div><!-- /.cart-shopping-total -->			</div><!-- /.shopping-cart -->
+		</div> <!-- /.row -->
+		<!-- ============================================== BRANDS CAROUSEL ============================================== -->
+
+<!-- ============================================== BRANDS CAROUSEL : END ============================================== -->	</div><!-- /.container -->
+</div><!-- /.body-content -->
+
+{% endblock index %}
